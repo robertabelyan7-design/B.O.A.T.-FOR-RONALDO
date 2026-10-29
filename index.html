@@ -127,7 +127,7 @@
 
     <div class="petition-box">
         <div class="counter-title">ПОДПИСАЛИ ПЕТИЦИЮ:</div>
-        <div class="counter-number" id="voteCount">0</div>
+        <div class="counter-number" id="voteCount">Загрузка...</div>
 
         <form class="sign-form" id="petitionForm">
             <input type="text" id="signerName" placeholder="Ваше имя / Name" required>
@@ -138,31 +138,30 @@
     </div>
 
     <script>
-        // Используем уникальный ID базы данных для твоей петиции
-        const namespace = "boat-ronaldo-petition-2026";
-        const key = "signatures";
         const countDisplay = document.getElementById('voteCount');
         const form = document.getElementById('petitionForm');
         const successMsg = document.getElementById('successMsg');
 
-        // Загружаем текущее число подписей из общей базы
-        async function loadVotes() {
+        // Путь к надежному онлайн-счетчику
+        const counterUrl = "https://api.counterapi.dev/v1/boat-ronaldo-2026/signatures";
+
+        // Функция для получения реального числа голосов всех пользователей
+        async function getGlobalVotes() {
             try {
-                const response = await fetch(`https://api.countapi.xyz/get/${namespace}/${key}`);
-                const data = await response.json();
-                if (data.value !== undefined) {
-                    countDisplay.textContent = data.value.toLocaleString();
-                } else {
-                    countDisplay.textContent = "0";
+                let response = await fetch(counterUrl);
+                if (!response.ok) {
+                    // Если счетчик еще не создан — создаем его через +1
+                    response = await fetch(counterUrl + "/up");
                 }
+                let data = await response.json();
+                countDisplay.textContent = data.count !== undefined ? data.count.toLocaleString() : "0";
             } catch (e) {
-                // Если база еще не создана или оффлайн, используем локальный счетчик
-                let localVotes = localStorage.getItem('boat_votes_count') || 0;
-                countDisplay.textContent = parseInt(localVotes).toLocaleString();
+                // Если нет соединения, показывает 0
+                countDisplay.textContent = "0";
             }
         }
 
-        loadVotes();
+        getGlobalVotes();
 
         // Проверяем, подписывал ли уже этот браузер
         if (localStorage.getItem('already_signed_boat') === 'true') {
@@ -176,16 +175,14 @@
 
             if (localStorage.getItem('already_signed_boat') !== 'true') {
                 try {
-                    // Прибавляем +1 в общую базу данных
-                    const response = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
-                    const data = await response.json();
-                    if (data.value !== undefined) {
-                        countDisplay.textContent = data.value.toLocaleString();
+                    // Отправляем +1 в общую базу данных для всех пользователей
+                    let response = await fetch(counterUrl + "/up");
+                    let data = await response.json();
+                    if (data.count !== undefined) {
+                        countDisplay.textContent = data.count.toLocaleString();
                     }
                 } catch (e) {
-                    let localVotes = parseInt(localStorage.getItem('boat_votes_count') || 0) + 1;
-                    localStorage.setItem('boat_votes_count', localVotes);
-                    countDisplay.textContent = localVotes.toLocaleString();
+                    console.log(e);
                 }
 
                 localStorage.setItem('already_signed_boat', 'true');
