@@ -127,11 +127,11 @@
 
     <div class="petition-box">
         <div class="counter-title">ПОДПИСАЛИ ПЕТИЦИЮ:</div>
-        <div class="counter-number" id="voteCount">Загрузка...</div>
+        <div class="counter-number" id="voteCount">0</div>
 
         <form class="sign-form" id="petitionForm">
             <input type="text" id="signerName" placeholder="Ваше имя / Name" required>
-            <button type="submit" class="sign-btn">Подписать петицию</button>
+            <button type="submit" class="sign-btn" id="submitBtn">Подписать петицию</button>
         </form>
 
         <div class="success-msg" id="successMsg">Спасибо! Ваш голос учтен! 🎉</div>
@@ -141,30 +141,30 @@
         const countDisplay = document.getElementById('voteCount');
         const form = document.getElementById('petitionForm');
         const successMsg = document.getElementById('successMsg');
+        const submitBtn = document.getElementById('submitBtn');
 
-        // Путь к надежному онлайн-счетчику
-        const counterUrl = "https://api.counterapi.dev/v1/boat-ronaldo-2026/signatures";
+        // Путь к онлайн-счетчику
+        const apiUrl = "https://api.counterapi.dev/v1/boat_ronaldo_petition_2026/votes";
 
-        // Функция для получения реального числа голосов всех пользователей
-        async function getGlobalVotes() {
+        // Функция получения текущего общего кол-ва подписей
+        async function fetchVotes() {
             try {
-                let response = await fetch(counterUrl);
-                if (!response.ok) {
-                    // Если счетчик еще не создан — создаем его через +1
-                    response = await fetch(counterUrl + "/up");
+                let res = await fetch(apiUrl);
+                let data = await res.json();
+                if (data && data.count !== undefined) {
+                    countDisplay.textContent = data.count.toLocaleString();
+                } else {
+                    countDisplay.textContent = "0";
                 }
-                let data = await response.json();
-                countDisplay.textContent = data.count !== undefined ? data.count.toLocaleString() : "0";
             } catch (e) {
-                // Если нет соединения, показывает 0
                 countDisplay.textContent = "0";
             }
         }
 
-        getGlobalVotes();
+        fetchVotes();
 
-        // Проверяем, подписывал ли уже этот браузер
-        if (localStorage.getItem('already_signed_boat') === 'true') {
+        // Если пользователь уже подписывал с этого браузера
+        if (localStorage.getItem('ronaldo_signed_v2') === 'true') {
             form.style.display = 'none';
             successMsg.style.display = 'block';
             successMsg.textContent = 'Вы уже подписали эту петицию! 🏆';
@@ -172,21 +172,27 @@
 
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Отправка...";
 
-            if (localStorage.getItem('already_signed_boat') !== 'true') {
-                try {
-                    // Отправляем +1 в общую базу данных для всех пользователей
-                    let response = await fetch(counterUrl + "/up");
-                    let data = await response.json();
-                    if (data.count !== undefined) {
-                        countDisplay.textContent = data.count.toLocaleString();
-                    }
-                } catch (e) {
-                    console.log(e);
+            try {
+                // Отправляем +1 в общую глобальную базу
+                let res = await fetch(apiUrl + "/up");
+                let data = await res.json();
+                
+                if (data && data.count !== undefined) {
+                    countDisplay.textContent = data.count.toLocaleString();
+                } else {
+                    let current = parseInt(countDisplay.textContent) || 0;
+                    countDisplay.textContent = (current + 1).toLocaleString();
                 }
-
-                localStorage.setItem('already_signed_boat', 'true');
+            } catch (e) {
+                let current = parseInt(countDisplay.textContent) || 0;
+                countDisplay.textContent = (current + 1).toLocaleString();
             }
+
+            // Запоминаем подпись только для этого устройства
+            localStorage.setItem('ronaldo_signed_v2', 'true');
 
             form.style.display = 'none';
             successMsg.style.display = 'block';
