@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>B.O.A.T. For Ronaldo</title>
+    <title>B.O.A.T. For Ronaldo Petition</title>
     <style>
         body {
             background-color: #0b0b0b;
@@ -31,7 +31,7 @@
             color: #aaaaaa;
             font-size: 1.1rem;
             margin-top: 0;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             text-align: center;
         }
 
@@ -43,6 +43,7 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 0 25px rgba(229, 169, 59, 0.3);
+            margin-bottom: 20px;
         }
 
         .card-container img {
@@ -50,37 +51,119 @@
             display: block;
         }
 
-        .vote-btn {
-            margin-top: 30px;
-            background-color: #e5a93b;
-            color: #000;
-            font-size: 1.2rem;
-            font-weight: bold;
-            padding: 15px 35px;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: transform 0.2s, background-color 0.2s;
+        .petition-box {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 450px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
         }
 
-        .vote-btn:hover {
+        .counter-title {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .counter-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #e5a93b;
+            margin-bottom: 15px;
+        }
+
+        .sign-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sign-form input {
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background-color: #222;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .sign-btn {
+            background-color: #e5a93b;
+            color: #000;
+            font-size: 1.1rem;
+            font-weight: bold;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .sign-btn:hover {
             background-color: #f7c263;
-            transform: scale(1.05);
+            transform: scale(1.02);
+        }
+
+        .success-msg {
+            display: none;
+            color: #4caf50;
+            font-weight: bold;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
     <h1>B.O.A.T. FOR RONALDO</h1>
-    <p class="subtitle">Ballon d'Or of All Time — 1 Vote = 1 €</p>
+    <p class="subtitle">Ballon d'Or of All Time — Official Fan Petition</p>
 
     <div class="card-container">
-        <!-- Название вашей картинки из репозитория -->
         <img src="ronaldo b.o.a.t 7.jpg" alt="Cristiano Ronaldo">
     </div>
 
-    <a href="#" class="vote-btn">Vote for Ronaldo (1 €)</a>
+    <div class="petition-box">
+        <div class="counter-title">ПОДПИСАЛИ ПЕТИЦИЮ:</div>
+        <div class="counter-number" id="voteCount">1,482</div>
+
+        <form class="sign-form" id="petitionForm">
+            <input type="text" id="signerName" placeholder="Ваше имя / Name" required>
+            <button type="submit" class="sign-btn">Подписать петицию</button>
+        </form>
+
+        <div class="success-msg" id="successMsg">Спасибо! Ваш голос учтен! 🎉</div>
+    </div>
+
+    <script>
+        let count = localStorage.getItem('ronaldo_votes') ? parseInt(localStorage.getItem('ronaldo_votes')) : 1482;
+        const countDisplay = document.getElementById('voteCount');
+        const form = document.getElementById('petitionForm');
+        const successMsg = document.getElementById('successMsg');
+
+        countDisplay.textContent = count.toLocaleString();
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!localStorage.getItem('already_signed')) {
+                count++;
+                localStorage.setItem('ronaldo_votes', count);
+                localStorage.setItem('already_signed', 'true');
+                countDisplay.textContent = count.toLocaleString();
+            }
+
+            form.style.display = 'none';
+            successMsg.style.display = 'block';
+        });
+
+        if (localStorage.getItem('already_signed')) {
+            form.style.display = 'none';
+            successMsg.style.display = 'block';
+            successMsg.textContent = 'Вы уже подписали эту петицию! 🏆';
+        }
+    </script>
 
 </body>
 </html>
