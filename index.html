@@ -112,6 +112,7 @@
             color: #4caf50;
             font-weight: bold;
             margin-top: 10px;
+            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -126,7 +127,7 @@
 
     <div class="petition-box">
         <div class="counter-title">ПОДПИСАЛИ ПЕТИЦИЮ:</div>
-        <div class="counter-number" id="voteCount">1,482</div>
+        <div class="counter-number" id="voteCount">0</div>
 
         <form class="sign-form" id="petitionForm">
             <input type="text" id="signerName" placeholder="Ваше имя / Name" required>
@@ -137,32 +138,63 @@
     </div>
 
     <script>
-        let count = localStorage.getItem('ronaldo_votes') ? parseInt(localStorage.getItem('ronaldo_votes')) : 1482;
+        // Используем уникальный ID базы данных для твоей петиции
+        const namespace = "boat-ronaldo-petition-2026";
+        const key = "signatures";
         const countDisplay = document.getElementById('voteCount');
         const form = document.getElementById('petitionForm');
         const successMsg = document.getElementById('successMsg');
 
-        countDisplay.textContent = count.toLocaleString();
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            if (!localStorage.getItem('already_signed')) {
-                count++;
-                localStorage.setItem('ronaldo_votes', count);
-                localStorage.setItem('already_signed', 'true');
-                countDisplay.textContent = count.toLocaleString();
+        // Загружаем текущее число подписей из общей базы
+        async function loadVotes() {
+            try {
+                const response = await fetch(`https://api.countapi.xyz/get/${namespace}/${key}`);
+                const data = await response.json();
+                if (data.value !== undefined) {
+                    countDisplay.textContent = data.value.toLocaleString();
+                } else {
+                    countDisplay.textContent = "0";
+                }
+            } catch (e) {
+                // Если база еще не создана или оффлайн, используем локальный счетчик
+                let localVotes = localStorage.getItem('boat_votes_count') || 0;
+                countDisplay.textContent = parseInt(localVotes).toLocaleString();
             }
+        }
 
-            form.style.display = 'none';
-            successMsg.style.display = 'block';
-        });
+        loadVotes();
 
-        if (localStorage.getItem('already_signed')) {
+        // Проверяем, подписывал ли уже этот браузер
+        if (localStorage.getItem('already_signed_boat') === 'true') {
             form.style.display = 'none';
             successMsg.style.display = 'block';
             successMsg.textContent = 'Вы уже подписали эту петицию! 🏆';
         }
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (localStorage.getItem('already_signed_boat') !== 'true') {
+                try {
+                    // Прибавляем +1 в общую базу данных
+                    const response = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
+                    const data = await response.json();
+                    if (data.value !== undefined) {
+                        countDisplay.textContent = data.value.toLocaleString();
+                    }
+                } catch (e) {
+                    let localVotes = parseInt(localStorage.getItem('boat_votes_count') || 0) + 1;
+                    localStorage.setItem('boat_votes_count', localVotes);
+                    countDisplay.textContent = localVotes.toLocaleString();
+                }
+
+                localStorage.setItem('already_signed_boat', 'true');
+            }
+
+            form.style.display = 'none';
+            successMsg.style.display = 'block';
+            successMsg.textContent = 'Спасибо! Ваш голос учтен! 🎉';
+        });
     </script>
 
 </body>
